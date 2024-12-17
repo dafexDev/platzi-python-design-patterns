@@ -4,6 +4,8 @@ from notifiers import NotifierProtocol, EmailNotifier, SMSNotifier
 
 from service import PaymentService
 
+from logging_service import PaymentServiceLogging
+
 from loggers import TransactionLogger
 
 from validators import CustomerValidator, PaymentDataValidator
@@ -61,13 +63,9 @@ service = PaymentService.create_with_payment_processor(
     logger=logger,
 )
 
-""" service = PaymentService(
-    payment_processor=stripe_payment_processor,
-    notifier=notifier,
-    customer_validator=customer_validator,
-    payment_validator=payment_validator,
-    logger=logger,
-) """
+logging_service = PaymentServiceLogging(service)
+
+logging_service.process_transaction(customer_data, payment_data)
 
 """Change notification strategy to email
 service.set_notifier(email_notifier)

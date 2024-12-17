@@ -18,9 +18,11 @@ from validators import CustomerValidator, PaymentDataValidator
 
 from factory import PaymentProcessorFactory
 
+from service_protocol import PaymentServiceProtocol
+
 
 @dataclass
-class PaymentService:
+class PaymentService(PaymentServiceProtocol):
     payment_processor: PaymentProcessorProtocol
     notifier: NotifierProtocol
     customer_validator: CustomerValidator
@@ -28,7 +30,7 @@ class PaymentService:
     logger: TransactionLogger
     refund_processor: Optional[RefundProcessorProtocol] = None
     recurring_processor: Optional[RecurringPaymentProcessorProtocol] = None
-    
+
     @classmethod
     def create_with_payment_processor(cls, payment_data: PaymentData, **kwargs) -> Self:
         try:
@@ -37,7 +39,7 @@ class PaymentService:
         except ValueError as e:
             print("Error creating processor")
             raise e
-    
+
     def set_notifier(self, notifier: NotifierProtocol):
         print("Changing the notifier implementation")
         self.notifier = notifier
@@ -54,14 +56,16 @@ class PaymentService:
         self.logger.log_transaction(customer_data, payment_data, payment_response)
         return payment_response
 
-    def process_refund(self, transaction_id: str):
+    def process_refund(self, transaction_id: str) -> PaymentResponse:
         if not self.refund_processor:
             raise Exception("this processor does not support refunds")
         refund_response = self.refund_processor.refund_payment(transaction_id)
         self.logger.log_refund(transaction_id, refund_response)
         return refund_response
 
-    def setup_recurring(self, customer_data: CustomerData, payment_data: PaymentData):
+    def setup_recurring(
+        self, customer_data: CustomerData, payment_data: PaymentData
+    ) -> PaymentResponse:
         if not self.recurring_processor:
             raise Exception("this processor does not support recurring")
         recurring_response = self.recurring_processor.setup_recurring_payment(
