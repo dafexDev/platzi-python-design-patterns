@@ -1,12 +1,8 @@
-import os
-
-from commons import CustomerData, ContactInfo
+from commons import CustomerData, ContactInfo, PaymentData
 
 from notifiers import NotifierProtocol, EmailNotifier, SMSNotifier
 
 from service import PaymentService
-
-from processors import StripePaymentProcessor
 
 from loggers import TransactionLogger
 
@@ -38,9 +34,9 @@ def get_customer_data() -> CustomerData:
     return customer_data
 
 
-stripe_payment_processor = StripePaymentProcessor(
+"""stripe_payment_processor = StripePaymentProcessor(
     os.getenv("STRIPE_API_KEY"), os.getenv("STRIPE_PRICE_ID")
-)
+)"""
 
 customer_data = get_customer_data()
 
@@ -54,16 +50,27 @@ payment_validator = PaymentDataValidator()
 
 logger = TransactionLogger()
 
-service = PaymentService(
-    payment_processor=stripe_payment_processor,
+
+payment_data = PaymentData(amount=100, source="tok_visa", currency="USD")
+
+service = PaymentService.create_with_payment_processor(
+    payment_data=payment_data,
     notifier=notifier,
     customer_validator=customer_validator,
     payment_validator=payment_validator,
     logger=logger,
 )
 
-# Change notification strategy to email
+""" service = PaymentService(
+    payment_processor=stripe_payment_processor,
+    notifier=notifier,
+    customer_validator=customer_validator,
+    payment_validator=payment_validator,
+    logger=logger,
+) """
+
+"""Change notification strategy to email
 service.set_notifier(email_notifier)
 
-# Change notification strategy to sms
-service.set_notifier(sms_notifier)
+Change notification strategy to sms
+service.set_notifier(sms_notifier) """

@@ -16,6 +16,8 @@ from processors import (
 
 from validators import CustomerValidator, PaymentDataValidator
 
+from factory import PaymentProcessorFactory
+
 
 @dataclass
 class PaymentService:
@@ -26,6 +28,15 @@ class PaymentService:
     logger: TransactionLogger
     refund_processor: Optional[RefundProcessorProtocol] = None
     recurring_processor: Optional[RecurringPaymentProcessorProtocol] = None
+    
+    @classmethod
+    def create_with_payment_processor(cls, payment_data: PaymentData, **kwargs) -> Self:
+        try:
+            processor = PaymentProcessorFactory.create_payment_processor(payment_data)
+            return PaymentService(payment_processor=processor, **kwargs)
+        except ValueError as e:
+            print("Error creating processor")
+            raise e
     
     def set_notifier(self, notifier: NotifierProtocol):
         print("Changing the notifier implementation")
