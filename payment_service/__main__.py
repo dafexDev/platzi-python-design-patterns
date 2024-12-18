@@ -59,8 +59,7 @@ builder = PaymentServiceBuilder()
 
 service = (
     builder.set_logger()
-    .set_customer_validatior()
-    .set_payment_validator()
+    .set_chain_of_validations()
     .set_payment_processor(payment_data)
     .set_notifier(customer_data)
     .set_listeners()

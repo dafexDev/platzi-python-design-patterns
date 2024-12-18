@@ -14,7 +14,7 @@ from processors import (
     RecurringPaymentProcessorProtocol,
 )
 
-from validators import CustomerValidator, PaymentDataValidator
+from validators.handlers import ChainHandler
 
 from factory import PaymentProcessorFactory
 
@@ -27,8 +27,7 @@ from listeners import ListenersManager
 class PaymentService(PaymentServiceProtocol):
     payment_processor: PaymentProcessorProtocol
     notifier: NotifierProtocol
-    customer_validator: CustomerValidator
-    payment_validator: PaymentDataValidator
+    validators: ChainHandler
     logger: TransactionLogger
     listeners: ListenersManager
     refund_processor: Optional[RefundProcessorProtocol] = None
@@ -50,8 +49,12 @@ class PaymentService(PaymentServiceProtocol):
     def process_transaction(
         self, customer_data: CustomerData, payment_data: PaymentData
     ) -> PaymentResponse:
-        self.customer_validator.validate(customer_data)
-        self.payment_validator.validate(payment_data)
+        try:
+            request = Request(customer_data=customer_data, payment_data=payment_data)
+            self.validators.handle(request)
+        except Exception as e:
+            print("Error validating request")
+            raise e
         payment_response = self.payment_processor.process_transaction(
             customer_data, payment_data
         )

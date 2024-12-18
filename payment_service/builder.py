@@ -18,7 +18,7 @@ from processors import (
     RecurringPaymentProcessorProtocol,
 )
 
-from validators import CustomerValidator, PaymentDataValidator
+from validators.handlers import ChainHandler, CustomerHandler, PaymentDataHandler
 
 from listeners import ListenersManager, AccountabilityListener
 
@@ -27,8 +27,7 @@ from listeners import ListenersManager, AccountabilityListener
 class PaymentServiceBuilder:
     payment_processor: Optional[PaymentProcessorProtocol] = None
     notifier: Optional[NotifierProtocol] = None
-    customer_validator: Optional[CustomerValidator] = None
-    payment_validator: Optional[PaymentDataValidator] = None
+    validator: Optional[ChainHandler] = None
     logger: Optional[TransactionLogger] = None
     listener: Optional[ListenersManager] = None
     refund_processor: Optional[RefundProcessorProtocol] = None
@@ -38,12 +37,10 @@ class PaymentServiceBuilder:
         self.logger = TransactionLogger()
         return self
 
-    def set_customer_validatior(self) -> Self:
-        self.customer_validator = CustomerValidator()
-        return self
-
-    def set_payment_validator(self) -> Self:
-        self.payment_validator = PaymentDataValidator()
+    def set_chain_of_validations(self) -> Self:
+        payment_data_handler = PaymentDataHandler()
+        customer_handler = CustomerHandler(payment_data_handler)
+        self.validator = customer_handler
         return self
 
     def set_payment_processor(self, payment_data: PaymentData) -> Self:
@@ -65,7 +62,7 @@ class PaymentServiceBuilder:
             return self
 
         raise ValueError("Cannot select notifier class")
-    
+
     def set_listeners(self) -> Self:
         listener = ListenersManager()
         accontability_listener = AccountabilityListener()
@@ -78,10 +75,9 @@ class PaymentServiceBuilder:
             [
                 self.payment_processor,
                 self.notifier,
-                self.customer_validator,
-                self.payment_validator,
+                self.validator,
                 self.logger,
-                self.listener
+                self.listener,
             ]
         ):
             missing = [
@@ -89,10 +85,9 @@ class PaymentServiceBuilder:
                 for name, value in [
                     ("payment_processor", self.payment_processor),
                     ("notifier", self.notifier),
-                    ("customer_validator", self.customer_validator),
-                    ("payment_validator", self.payment_validator),
+                    ("validator", self.validator),
                     ("logger", self.logger),
-                    ("listener", self.listener)
+                    ("listener", self.listener),
                 ]
                 if value is None
             ]
@@ -100,8 +95,7 @@ class PaymentServiceBuilder:
 
         return PaymentService(
             payment_processor=self.payment_processor,
-            customer_validator=self.customer_validator,
-            payment_validator=self.payment_validator,
+            validators=self.validator,
             notifier=self.notifier,
             logger=self.logger,
             listeners=self.listener,

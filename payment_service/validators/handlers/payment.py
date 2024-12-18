@@ -1,18 +1,18 @@
-__all__ = ["CustomerHandler"]
+__all__ = ["PaymentDataHandler"]
 
 
 from .chain import ChainHandler
 
 from commons.request import Request
 
-from ..customer import CustomerValidator
+from ..payment import PaymentDataValidator
 
 
-class CustomerHandler(ChainHandler):
+class PaymentDataHandler(ChainHandler):
     def handle(self, request: Request):
-        validator = CustomerValidator()
+        validator = PaymentDataValidator()
         try:
-            validator.validate(request.customer_data)
+            validator.validate(request.payment_data)
             if self._next_handler:
                 self._next_handler.handle(request)
         except Exception as e:
