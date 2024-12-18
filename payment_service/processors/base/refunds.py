@@ -1,11 +1,12 @@
 __all__ = ["RefundProcessorProtocol"]
 
 
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from commons import PaymentResponse
 
 
+@runtime_checkable
 class RefundProcessorProtocol(Protocol):
     """Protocol for processing refunds."""
 
