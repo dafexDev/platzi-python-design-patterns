@@ -20,6 +20,8 @@ from factory import PaymentProcessorFactory
 
 from service_protocol import PaymentServiceProtocol
 
+from listeners import ListenersManager
+
 
 @dataclass
 class PaymentService(PaymentServiceProtocol):
@@ -28,6 +30,7 @@ class PaymentService(PaymentServiceProtocol):
     customer_validator: CustomerValidator
     payment_validator: PaymentDataValidator
     logger: TransactionLogger
+    listeners: ListenersManager
     refund_processor: Optional[RefundProcessorProtocol] = None
     recurring_processor: Optional[RecurringPaymentProcessorProtocol] = None
 

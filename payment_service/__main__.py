@@ -63,6 +63,7 @@ service = (
     .set_payment_validator()
     .set_payment_processor(payment_data)
     .set_notifier(customer_data)
+    .set_listeners()
     .build()
 )
 
